@@ -54,56 +54,50 @@ public class MouseBrain : MonoBehaviour
     //Checks if the mouse clicked a gameObject and then sends the raycast info to HandleMouseClick
     void OnMouseClick()
     {
-        Vector3 clickPos =  Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Debug.Log(clickPos);
+        Vector3 clickPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        clickPos.z = 0;
 
         if(mode == Mode.SPAWN)
         {
-            //Add Node
-            Node.SpawnNode(new Vector2(clickPos.x, clickPos.y));
+            Node.SpawnNode(clickPos);
             mode = Mode.MOVE;
         }
-        else if(mode == Mode.EDGE)
+        else if(mode == Mode.MOVE)
         {
-            //Add Edge
-        }
-        else
-        {
-            RaycastHit2D hitInfo = Physics2D.Raycast(Camera.main.transform.position, clickPos - Camera.main.transform.position);
-            if(hitInfo)
+            RaycastHit2D hitInfo = Physics2D.Raycast(Camera.main.transform.position, clickPos - Camera.main.transform.position, Mathf.Infinity, LayerMask.GetMask("Node"));
+            if(hitInfo.collider != null)
             {
-                HandleMouseClick(hitInfo);
-            }
-        }
-    }
-
-    //If click hit an object then handle it
-    void HandleMouseClick(RaycastHit2D hitInfo)
-    {
-        
-        if(mode == Mode.MOVE)
-        {
-            //Move Object if movable
-            var moveScript = hitInfo.collider.gameObject.GetComponent<IMovable>();
-            if(moveScript != null)
+                IMovable moveScript = hitInfo.collider.gameObject.GetComponent<IMovable>();
                 moveScript.Pickup();
+            }
         }
         else if(mode == Mode.DELETE)
         {
-            //Delete Object if deletable
-            var deleteScript = hitInfo.collider.gameObject.GetComponent<IDeletable>();
-            if(deleteScript != null)
+            RaycastHit2D hitInfo = Physics2D.Raycast(Camera.main.transform.position, clickPos - Camera.main.transform.position, Mathf.Infinity, LayerMask.GetMask("Node", "Edge"));
+            if(hitInfo.collider != null)
+            {
+                IDeletable deleteScript = hitInfo.collider.gameObject.GetComponent<IDeletable>();
                 deleteScript.Delete();
+            }
+        }
+        else if(mode == Mode.EDGE)
+        {
+            RaycastHit2D hitInfo = Physics2D.Raycast(Camera.main.transform.position, clickPos - Camera.main.transform.position, Mathf.Infinity, LayerMask.GetMask("Node"));
+            if(hitInfo.collider != null)
+            {
+                GameObject edge = Instantiate<GameObject>(Resources.Load("Edge") as GameObject);
+                edge.GetComponent<Edge>().SpawnEdge(hitInfo.collider.gameObject.GetComponent<Node>());
+            }
         }
     }
 
     void CameraControl()
     {
-        //Changes Camera viewport size with scroll
+        // Changes Camera viewport size with scroll
         if(Input.mouseScrollDelta.y != 0)
         {
-            Camera.main.orthographicSize -= Input.mouseScrollDelta.y * scrollSensitivity;
-            Debug.Log("Scrolled " + Camera.main.orthographicSize);
+            if(Input.mouseScrollDelta.y > 0 && Camera.main.orthographicSize > 3f || Input.mouseScrollDelta.y < 0 && Camera.main.orthographicSize < 10f )
+                Camera.main.orthographicSize -= Input.mouseScrollDelta.y * scrollSensitivity;
         }
 
         if(Input.GetMouseButtonDown(1))

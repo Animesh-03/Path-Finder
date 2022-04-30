@@ -18,6 +18,10 @@ public class Node : MonoBehaviour, IMovable, IDeletable
     public Color baseColor;
 #endregion
 
+#region NodeVars
+    private string nodeName;
+#endregion
+
     private static GameObject nodePrefab;
 
 
@@ -62,7 +66,6 @@ public class Node : MonoBehaviour, IMovable, IDeletable
     public static void SpawnNode(Vector3 pos)
     {
         GameObject.Instantiate(nodePrefab, pos, Quaternion.identity);
-        Debug.Log("Spanwed");
     }
 
     public void SetActive()
@@ -73,6 +76,14 @@ public class Node : MonoBehaviour, IMovable, IDeletable
     public void SetInactive()
     {
         sr.color = baseColor;
+    }
+
+    public void SetName(string newName)
+    {
+        if(newName == "")
+            nodeName = "Node";
+        else
+            nodeName = newName;
     }
 
 }
