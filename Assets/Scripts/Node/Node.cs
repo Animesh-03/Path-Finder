@@ -20,6 +20,8 @@ public class Node : MonoBehaviour, IMovable, IDeletable
 
 #region NodeVars
     private string nodeName;
+    [SerializeField]
+    private List<Edge> edges = new List<Edge>();
 #endregion
 
     private static GameObject nodePrefab;
@@ -60,6 +62,11 @@ public class Node : MonoBehaviour, IMovable, IDeletable
 
     public void Delete()
     {
+        int len = edges.Count;
+        for(int i = 0; i < len; i++)
+        {
+            edges[0].Delete();
+        }
         Destroy(gameObject);
     }
 
@@ -76,6 +83,21 @@ public class Node : MonoBehaviour, IMovable, IDeletable
     public void SetInactive()
     {
         sr.color = baseColor;
+    }
+
+    public void AddEdge(Edge edge)
+    {
+        edges.Add(edge);
+    }
+
+    public void DeleteEdge(Edge edge)
+    {
+        edges.Remove(edge);
+    }
+
+    public List<Edge> GetEdges()
+    {
+        return edges;
     }
 
     public void SetName(string newName)

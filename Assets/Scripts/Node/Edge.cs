@@ -8,15 +8,14 @@ public class Edge : MonoBehaviour, IDeletable
 #region Components
     private LineRenderer lr;
     private CapsuleCollider2D cc;
+    private GameObject canvas;
 #endregion
 
     public bool edgeSet = false;
 
 #region EdgeVars
-    private string weight;
-    [SerializeField]
+    private int weight = 1;
     private Node startNode;
-    [SerializeField]
     private Node endNode;
 #endregion
 
@@ -37,6 +36,7 @@ public class Edge : MonoBehaviour, IDeletable
         {
             lr.SetPosition(0, startNode.transform.position);
             lr.SetPosition(1, endNode.transform.position);
+            transform.position = (startNode.transform.position + endNode.transform.position)/2f;
         }
         //If edge was not confirmed and mouse button was released then call SetNode
         if(!edgeSet && Input.GetMouseButtonUp(0))
@@ -48,6 +48,8 @@ public class Edge : MonoBehaviour, IDeletable
     public void SpawnEdge(Node par)
     {
         lr = GetComponent<LineRenderer>();
+        canvas = transform.Find("Canvas").gameObject;
+        canvas.SetActive(false);
 
         lr.positionCount = 2;
         lr.SetPosition(0, par.transform.position);
@@ -76,9 +78,12 @@ public class Edge : MonoBehaviour, IDeletable
             float angle = Mathf.Atan2((lr.GetPosition(0) - lr.GetPosition(1)).y, (lr.GetPosition(0) - lr.GetPosition(1)).x) * Mathf.Rad2Deg;
             transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, angle);
             cc.offset = new Vector2();
-            cc.size = new Vector2(GetEdgeLength() * 0.9f, 0.5f);
+            cc.size = new Vector2(GetEdgeLength() * 0.8f, 0.5f);
 
+            startNode.AddEdge(this);
             startNode.SetInactive();
+            canvas.SetActive(true);
+            canvas.transform.localEulerAngles = new Vector3(0,0, -1*angle);
         }
         else
         {
@@ -94,8 +99,30 @@ public class Edge : MonoBehaviour, IDeletable
         return len;
     }
 
+    public int GetWeight()
+    {
+        return weight;
+    }
+
+    public void SetWeight(string w)
+    {
+        weight = int.Parse(w);
+    }
+
     public void Delete()
     {
+        startNode.DeleteEdge(this);
+        startNode.SetInactive(); 
         Destroy(gameObject);
+    }
+
+    public Node GetStartNode()
+    {
+        return startNode;
+    }
+
+    public Node GetEndNode()
+    {
+        return endNode;
     }
 }
